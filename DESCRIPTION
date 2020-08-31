@@ -1,0 +1,17 @@
+Package: cranliketests
+Type: Package
+Title: Test cases for CRANlike server
+Version: 0.0
+Author: Jeroen Ooms
+Maintainer: Jeroen Ooms <jeroen@berkeley.edu>
+Description: Some tools and tests for testing the CRANlike server.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Imports: 
+    curl,
+    mongolite,
+    jsonlite
+LazyData: true
+Suggests: 
+    testthat (>= 2.1.0)
+RoxygenNote: 7.0.1
