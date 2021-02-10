@@ -79,7 +79,7 @@ put_package <- function(path, package, version, type = c('src', 'win', 'mac'), u
   buildheaders <- c("Builder-Status: OK", paste0("Builder-URL: http://localhost/test/", type),
                     "Builder-Sysdeps: libfoobar (1.2.3)")
   if(type == 'src')
-    buildheaders <- c(buildheaders, 'Builder-Vignettes' = pkg_vignettes_base64(path))
+    buildheaders <- c(buildheaders, paste('Builder-Vignettes:', pkg_vignettes_base64(path)))
   res <- curl::curl_upload(path, url, verbose = FALSE, httpheader = buildheaders)
   out <- parse_res(res)
   stopifnot(out$Package == package, out$Version == version)
