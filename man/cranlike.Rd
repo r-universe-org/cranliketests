@@ -12,7 +12,7 @@
 \usage{
 sync_with_cran(
   pkgs,
-  types = c("src", "win", "mac"),
+  types = c("src", "win", "mac", "oldwin", "oldmac"),
   dependencies = FALSE,
   user = "cran"
 )
@@ -40,7 +40,7 @@ put_package(
   user = "cran"
 )
 
-crantype(type = c("src", "win", "mac"))
+crantype(type = c("src", "win", "mac", "oldwin", "oldmac"))
 
 db_packages()
 

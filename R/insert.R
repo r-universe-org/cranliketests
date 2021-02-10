@@ -24,7 +24,7 @@ sync_with_cran <- function(pkgs, types = c('src', 'win', 'mac', 'oldwin', 'oldma
       path <- row[2]
       package <- row[1]
       version <- sub(".*_(.*)\\.(tar.gz|tgz|zip)", "\\1", basename(path))
-      print(system.time(put_package(path, package, version = version, type = sub("old", "", type), user = user)))
+      put_package(path, package, version = version, type = sub("old", "", type), user = user)
       c(path, package, version)
     }))
   })
@@ -59,6 +59,8 @@ post_package <- function(path, package, version, type = c('src', 'win', 'mac'), 
   h <- curl::new_handle()
   buildfields = list('Builder-Status' = "OK", 'Builder-URL' = "http://localhost/test",
                      'Builder-Sysdeps' = 'libfoobar (1.2.3)')
+  if(type == 'src')
+    buildfields <- c(buildfields, 'Builder-Vignettes' = pkg_vignettes_base64(path))
   curl::handle_setform(h, file = curl::form_file(path), .list = buildfields)
   url <- sprintf('http://localhost:3000/%s/packages/%s/%s/%s', user, package, version, type)
   res <- curl::curl_fetch_memory(url, handle = h)
@@ -76,6 +78,8 @@ put_package <- function(path, package, version, type = c('src', 'win', 'mac'), u
   url <- sprintf('http://localhost:3000/%s/packages/%s/%s/%s/%s', user, package, version, type, md5)
   buildheaders <- c("Builder-Status: OK", paste0("Builder-URL: http://localhost/test/", type),
                     "Builder-Sysdeps: libfoobar (1.2.3)")
+  if(type == 'src')
+    buildheaders <- c(buildheaders, 'Builder-Vignettes' = pkg_vignettes_base64(path))
   res <- curl::curl_upload(path, url, verbose = FALSE, httpheader = buildheaders)
   out <- parse_res(res)
   stopifnot(out$Package == package, out$Version == version)
@@ -113,8 +117,25 @@ parse_res <- function(res){
 }
 
 get_contrib_url <- function(type, repos = 'https://cloud.r-project.org'){
-  url <- contrib.url(repos = repos, type = crantype(type))
+  url <- utils::contrib.url(repos = repos, type = crantype(type))
   if(grepl("old", type))
     url <- file.path(dirname(url), '3.6')
   return(url)
+}
+
+#NB: mimic maketools::vignettes_base64
+pkg_vignettes_base64 <- function(tarfile){
+  tmp <- tempfile()
+  on.exit(unlink(tmp, recursive = TRUE))
+  utils::untar(tarfile, exdir = tmp, tar = 'internal')
+  pkgdir <- list.files(tmp, full.names = TRUE)
+  rdsfile <- file.path(pkgdir, 'build', 'vignette.rds')
+  if(!file.exists(rdsfile))
+    return(NULL)
+  vignettes <- readRDS(rdsfile)
+  if(nrow(vignettes) > 0){
+    df <- vignettes[c('File', 'PDF', 'Title')]
+    names(df) <- c("source", "filename", "title")
+    gsub("\n", "", jsonlite::base64_enc(jsonlite::toJSON(df)), fixed = TRUE)
+  }
 }

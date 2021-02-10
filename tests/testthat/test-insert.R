@@ -32,7 +32,7 @@ test_that("Error handling for PUT/POST", {
       expect_equal(out$Package, name)
       expect_equal(out$Version, version)
       expect_equal(out$MD5sum, unname(tools::md5sum(path)))
-      expect_equal(names(out[['_builder']]), c("status", "url", "sysdeps"))
+      expect_true(all(c("status", "url", "sysdeps") %in% names(out[['_builder']])))
       out <- delete_package(package = name, version = version, type = type, user = 'user3')
       expect_equal(out$Package, name)
       expect_equal(out$Version, version)
