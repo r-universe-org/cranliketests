@@ -136,6 +136,12 @@ pkg_vignettes_base64 <- function(tarfile){
   if(nrow(vignettes) > 0){
     df <- vignettes[c('File', 'PDF', 'Title')]
     names(df) <- c("source", "filename", "title")
-    gsub("\n", "", jsonlite::base64_enc(jsonlite::toJSON(df)), fixed = TRUE)
+    base64url_gzip(jsonlite::toJSON(df))
   }
+}
+
+base64url_gzip <- function(bin){
+  buf <- memCompress(bin, 'gzip')
+  text <- gsub("\n", "", jsonlite::base64_enc(buf), fixed = TRUE)
+  sub("=+$", "", chartr("+/", "-_", text))
 }
