@@ -3,6 +3,7 @@
 \name{sync_with_cran}
 \alias{sync_with_cran}
 \alias{delete_package}
+\alias{post_failure}
 \alias{post_package}
 \alias{put_package}
 \alias{crantype}
@@ -23,6 +24,8 @@ delete_package(
   type = c("src", "win", "mac"),
   user = "cran"
 )
+
+post_failure(package, version, user = "cran")
 
 post_package(
   path,

@@ -54,6 +54,20 @@ delete_package <- function(package, version = NULL, type = c('src', 'win', 'mac'
 
 #' @export
 #' @rdname cranlike
+post_failure <- function(package, version, user = 'cran'){
+  buildfields <- list('Builder-Status' = "FAILURE",
+                      'Builder-URL' = "http://someserver.com/ohnoes",
+                      'Builder-Maintainer' = 'Jerry Johnson <jerry@gmail.com>')
+  h <- curl::handle_setform(curl::new_handle(), .list = buildfields)
+  url <- sprintf('http://localhost:3000/%s/packages/%s/%s/%s', user, package, version, 'failure')
+  res <- curl::curl_fetch_memory(url, handle = h)
+  out <- parse_res(res)
+  stopifnot(out$Package == package, out$Version == version)
+  return(out)
+}
+
+#' @export
+#' @rdname cranlike
 post_package <- function(path, package, version, type = c('src', 'win', 'mac'), user = 'cran'){
   type <- match.arg(type)
   h <- curl::new_handle()

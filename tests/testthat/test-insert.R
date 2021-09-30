@@ -20,6 +20,17 @@ test_that("Sync with CRAN works works", {
   sync_with_cran(pkgs[2], user = 'user2')
   expect_equal(nrow(packages$find()), (1+length(pkgs)) * 5)
   expect_equal(nrow(files$find()), length(pkgs) * 5)
+
+  # Test posting failure
+  post_failure(pkgs[2], '1.0.0', user = 'user2')
+  post_failure(pkgs[2], '1.0.1', user = 'user2')
+  expect_equal(nrow(packages$find()), (1+length(pkgs)) * 5 + 1)
+  expect_equal(nrow(files$find()), length(pkgs) * 5)
+
+  # A source package upload should remove the failure so we're back at the original count
+  sync_with_cran(pkgs[2], user = 'user2')
+  expect_equal(nrow(packages$find()), (1+length(pkgs)) * 5)
+  expect_equal(nrow(files$find()), length(pkgs) * 5)
 })
 
 test_that("Error handling for PUT/POST", {
@@ -28,6 +39,9 @@ test_that("Error handling for PUT/POST", {
       path <- pkgfiles[[type]][1,1]
       name <- pkgfiles[[type]][1,2]
       version <- pkgfiles[[type]][1,3]
+      if(type == 'src'){
+        post_failure(package = name, version = version, user = 'user3')
+      }
       out <- submit(path = path, package = name, version = version, type = type, user = 'user3')
       expect_equal(out$Package, name)
       expect_equal(out$Version, version)
