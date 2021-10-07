@@ -72,7 +72,8 @@ post_package <- function(path, package, version, type = c('src', 'win', 'mac'), 
   type <- match.arg(type)
   h <- curl::new_handle()
   buildfields = list('Builder-Status' = "OK", 'Builder-URL' = "http://localhost/test",
-                     'Builder-Sysdeps' = 'libfoobar (1.2.3)')
+                     'Builder-Sysdeps' = 'libfoobar (1.2.3)',
+                     'Builder-Registered' = 'true')
   if(type == 'src')
     buildfields <- c(buildfields, 'Builder-Vignettes' = pkg_vignettes_base64(path))
   curl::handle_setform(h, file = curl::form_file(path), .list = buildfields)
@@ -91,7 +92,7 @@ put_package <- function(path, package, version, type = c('src', 'win', 'mac'), u
   md5 <- unname(tools::md5sum(path))
   url <- sprintf('http://localhost:3000/%s/packages/%s/%s/%s/%s', user, package, version, type, md5)
   buildheaders <- c("Builder-Status: OK", paste0("Builder-URL: http://localhost/test/", type),
-                    "Builder-Sysdeps: libfoobar (1.2.3)")
+                    "Builder-Sysdeps: libfoobar (1.2.3)", "Builder-Registered: true")
   if(type == 'src')
     buildheaders <- c(buildheaders, paste('Builder-Vignettes:', pkg_vignettes_base64(path)))
   res <- curl::curl_upload(path, url, verbose = FALSE, httpheader = buildheaders)
