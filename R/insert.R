@@ -75,6 +75,7 @@ post_package <- function(path, package, version, type = c('src', 'win', 'mac'), 
                      'Builder-URL' = "http://localhost/test",
                      'Builder-Sysdeps' = 'libfoobar (1.2.3)',
                      'Builder-Registered' = 'true',
+                     'Builder-MaintainerLogin' = 'jeroen',
                      'Builder-Timestamp' = timestamp(),
                      'Builder-Commit' = dummy_commit_data())
   if(type == 'src')
@@ -97,6 +98,7 @@ put_package <- function(path, package, version, type = c('src', 'win', 'mac'), u
   buildheaders <- c("Builder-Status: OK",
                     "Builder-Sysdeps: libfoobar (1.2.3)",
                     'Builder-Registered: true',
+                    'Builder-MaintainerLogin: jeroen',
                     paste0("Builder-URL: http://localhost/test/", type),
                     paste('Builder-Timestamp:', timestamp()),
                     paste('Builder-Commit:',dummy_commit_data()))
