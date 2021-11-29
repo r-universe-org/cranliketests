@@ -57,7 +57,7 @@ delete_package <- function(package, version = NULL, type = c('src', 'win', 'mac'
 post_failure <- function(package, version, user = 'cran'){
   buildfields <- list('Builder-Status' = "FAILURE",
                       'Builder-URL' = "http://someserver.com/ohnoes",
-                      'Builder-Maintainer' = 'Jerry Johnson <jerry@gmail.com>')
+                      'Builder-Maintainer' = dummy_maintainer_data())
   h <- curl::handle_setform(curl::new_handle(), .list = buildfields)
   url <- sprintf('http://localhost:3000/%s/packages/%s/%s/%s', user, package, version, 'failure')
   res <- curl::curl_fetch_memory(url, handle = h)
@@ -162,6 +162,12 @@ pkg_vignettes_base64 <- function(tarfile){
     names(df) <- c("source", "filename", "title")
     base64_gzip(jsonlite::toJSON(df))
   }
+}
+
+dummy_maintainer_data <- function(){
+  out <- list(name="Jeroen", email="jeroen@test.nl", login="jeroen")
+  json <- jsonlite::toJSON(out, auto_unbox = TRUE)
+  base64_gzip(json)
 }
 
 dummy_commit_data <- function(){
