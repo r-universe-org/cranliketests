@@ -179,7 +179,8 @@ dummy_commit_data <- function(){
 
 base64_gzip <- function(bin){
   buf <- memCompress(bin, 'gzip')
-  gsub("\n", "", jsonlite::base64_enc(buf), fixed = TRUE)
+  b64 <- gsub("\n", "", jsonlite::base64_enc(buf), fixed = TRUE)
+  chartr('+/', '-_', b64)
 }
 
 timestamp <- function(){
