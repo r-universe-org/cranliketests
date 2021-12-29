@@ -77,7 +77,7 @@ post_package <- function(path, package, version, type = c('src', 'win', 'mac'), 
                      'Builder-Registered' = 'true',
                      'Builder-Timestamp' = timestamp(),
                      'Builder-Maintainer' = dummy_maintainer_data(),
-                     'Builder-Commit' = dummy_commit_data())
+                     'Builder-Commit' = dummy_commit_data(package, version))
   if(type == 'src')
     buildfields <- c(buildfields, 'Builder-Vignettes' = pkg_vignettes_base64(path))
   curl::handle_setform(h, file = curl::form_file(path), .list = buildfields)
@@ -101,7 +101,7 @@ put_package <- function(path, package, version, type = c('src', 'win', 'mac'), u
                     paste0("Builder-URL: http://localhost/test/", type),
                     paste('Builder-Timestamp:', timestamp()),
                     paste('Builder-Maintainer:', dummy_maintainer_data()),
-                    paste('Builder-Commit:',dummy_commit_data()))
+                    paste('Builder-Commit:',dummy_commit_data(package, version)))
   if(type == 'src')
     buildheaders <- c(buildheaders, paste('Builder-Vignettes:', pkg_vignettes_base64(path)))
   res <- curl::curl_upload(path, url, verbose = FALSE, httpheader = buildheaders)
@@ -170,8 +170,8 @@ dummy_maintainer_data <- function(){
   base64_gzip(json)
 }
 
-dummy_commit_data <- function(){
-  out <- list(id = "123", author = "jeroen", message = "yolo", time = Sys.time())
+dummy_commit_data <- function(pkg, version){
+  out <- list(id = as.character(openssl::md5(paste(pkg, version))), author = "jeroen", message = "yolo", time = Sys.time())
   out$time <- unclass(out$time)
   json <- jsonlite::toJSON(out, auto_unbox = TRUE)
   base64_gzip(json)
