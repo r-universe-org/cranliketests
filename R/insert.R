@@ -57,7 +57,7 @@ delete_package <- function(package, version = NULL, type = c('src', 'win', 'mac'
 post_failure <- function(package, version, user = 'cran'){
   buildfields <- list('Builder-Status' = "FAILURE",
                       'Builder-URL' = "http://someserver.com/ohnoes",
-                      'Builder-Maintainer' = dummy_maintainer_data())
+                      'Builder-Maintainer' = dummy_maintainer_data(package))
   h <- curl::handle_setform(curl::new_handle(), .list = buildfields)
   url <- sprintf('http://localhost:3000/%s/packages/%s/%s/%s', user, package, version, 'failure')
   res <- curl::curl_fetch_memory(url, handle = h)
@@ -76,7 +76,7 @@ post_package <- function(path, package, version, type = c('src', 'win', 'mac'), 
                      'Builder-Sysdeps' = 'libfoobar (1.2.3)',
                      'Builder-Registered' = 'true',
                      'Builder-Timestamp' = timestamp(),
-                     'Builder-Maintainer' = dummy_maintainer_data(),
+                     'Builder-Maintainer' = dummy_maintainer_data(package),
                      'Builder-Commit' = dummy_commit_data(package, version))
   if(type == 'src')
     buildfields <- c(buildfields, 'Builder-Vignettes' = pkg_vignettes_base64(path))
@@ -100,7 +100,7 @@ put_package <- function(path, package, version, type = c('src', 'win', 'mac'), u
                     'Builder-Registered: true',
                     paste0("Builder-URL: http://localhost/test/", type),
                     paste('Builder-Timestamp:', timestamp()),
-                    paste('Builder-Maintainer:', dummy_maintainer_data()),
+                    paste('Builder-Maintainer:', dummy_maintainer_data(package)),
                     paste('Builder-Commit:',dummy_commit_data(package, version)))
   if(type == 'src')
     buildheaders <- c(buildheaders, paste('Builder-Vignettes:', pkg_vignettes_base64(path)))
@@ -164,8 +164,11 @@ pkg_vignettes_base64 <- function(tarfile){
   }
 }
 
-dummy_maintainer_data <- function(){
-  out <- list(name="Jeroen", email="jeroen@test.nl", login="jeroen", orcid = "123-455-yolo")
+dummy_maintainer_data <- function(pkg){
+  email <- ifelse(pkg == 'Rcpp', 'jeroen@test.nl', 'jeroen@berkeley.edu')
+  login <- if(pkg != 'jose') 'jeroen'
+  orcid <- if(pkg == 'openssl') "123-455-yolo"
+  out <- list(name="Jeroen", email = email, login = login, orcid = orcid)
   json <- jsonlite::toJSON(out, auto_unbox = TRUE)
   base64_gzip(json)
 }
