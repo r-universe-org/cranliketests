@@ -169,6 +169,7 @@ dummy_maintainer_data <- function(pkg){
   login <- if(pkg != 'jose') 'jeroen'
   orcid <- if(pkg == 'openssl') "123-455-yolo"
   out <- list(name="Jeroen", email = email, login = login, orcid = orcid)
+  out <- Filter(length, out) # drop NULLs
   json <- jsonlite::toJSON(out, auto_unbox = TRUE)
   base64_gzip(json)
 }
