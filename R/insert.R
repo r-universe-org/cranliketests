@@ -174,8 +174,16 @@ dummy_gitstats <- function(pkg){
                  openssl = list(jerry=5, tom = 7, dirk = 2),
                  Rcpp = list(dirk = 4, test = 8, jerry = 2),
                  curl = list(jerry=999))
-  json <- jsonlite::toJSON(list(contributions = contributions), auto_unbox = TRUE)
+  updates <- dummy_updates()
+  json <- jsonlite::toJSON(list(contributions = contributions, updates = updates), auto_unbox = TRUE)
   base64_gzip(json)
+}
+
+dummy_updates <- function(){
+  dates <- Sys.Date() - runif(100, max = 365)
+  df <- as.data.frame(table(format(dates, '%Y-%W')))
+  names(df) <- c("week", "n")
+  df
 }
 
 dummy_maintainer_data <- function(pkg){
