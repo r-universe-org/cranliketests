@@ -78,6 +78,7 @@ post_package <- function(path, package, version, type = c('src', 'win', 'mac'), 
                      'Builder-Timestamp' = timestamp(),
                      'Builder-Maintainer' = dummy_maintainer_data(package),
                      'Builder-Gitstats' = dummy_gitstats(package),
+                     'Builder-Upstream' = sprintf("https://github.com/%s/%s", user, package),
                      'Builder-Commit' = dummy_commit_data(package, version))
   if(type == 'src')
     buildfields <- c(buildfields, 'Builder-Vignettes' = pkg_vignettes_base64(path))
@@ -103,6 +104,7 @@ put_package <- function(path, package, version, type = c('src', 'win', 'mac'), u
                     paste('Builder-Timestamp:', timestamp()),
                     paste('Builder-Maintainer:', dummy_maintainer_data(package)),
                     paste('Builder-Gitstats:', dummy_gitstats(package)),
+                    paste('Builder-Upstream:', sprintf("https://github.com/%s/%s", user, package)),
                     paste('Builder-Commit:',dummy_commit_data(package, version)))
   if(type == 'src')
     buildheaders <- c(buildheaders, paste('Builder-Vignettes:', pkg_vignettes_base64(path)))
@@ -169,8 +171,8 @@ pkg_vignettes_base64 <- function(tarfile){
 dummy_gitstats <- function(pkg){
   contributions <- switch(pkg,
                  jose = list(jerry = 3, jenny = 1),
-                 openssl = list(jerry=5, tom = 7),
-                 Rcpp = list(dirk = 4, test = 8),
+                 openssl = list(jerry=5, tom = 7, dirk = 2),
+                 Rcpp = list(dirk = 4, test = 8, jerry = 2),
                  curl = list(jerry=999))
   json <- jsonlite::toJSON(list(contributions = contributions), auto_unbox = TRUE)
   base64_gzip(json)
