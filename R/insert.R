@@ -73,9 +73,9 @@ post_package <- function(path, package, version, type = c('src', 'win', 'mac'), 
   h <- curl::new_handle()
   buildfields = list('Builder-Status' = "OK",
                      'Builder-URL' = "http://localhost/test",
-                     'Builder-Sysdeps' = 'libfoobar (1.2.3)',
                      'Builder-Registered' = 'true',
                      'Builder-Timestamp' = timestamp(),
+                     'Builder-Sysdeps' = dummy_sysdeps(),
                      'Builder-Maintainer' = dummy_maintainer_data(package),
                      'Builder-Gitstats' = dummy_gitstats(package),
                      'Builder-Upstream' = sprintf("https://github.com/%s/%s", user, package),
@@ -98,9 +98,9 @@ put_package <- function(path, package, version, type = c('src', 'win', 'mac'), u
   md5 <- unname(tools::md5sum(path))
   url <- sprintf('http://localhost:3000/%s/packages/%s/%s/%s/%s', user, package, version, type, md5)
   buildheaders <- c("Builder-Status: OK",
-                    "Builder-Sysdeps: libfoobar (1.2.3)",
                     'Builder-Registered: true',
                     paste0("Builder-URL: http://localhost/test/", type),
+                    paste('Builder-Sysdeps:', dummy_sysdeps()),
                     paste('Builder-Timestamp:', timestamp()),
                     paste('Builder-Maintainer:', dummy_maintainer_data(package)),
                     paste('Builder-Gitstats:', dummy_gitstats(package)),
@@ -184,6 +184,11 @@ dummy_updates <- function(){
   df <- as.data.frame(table(format(dates, '%Y-%W')))
   names(df) <- c("week", "n")
   df
+}
+
+dummy_sysdeps <- function(){
+  df <- data.frame(package='libfoobar7', version = '1.2.3', source = 'foobar')
+  base64_gzip(jsonlite::toJSON(df, auto_unbox = TRUE))
 }
 
 dummy_maintainer_data <- function(pkg){
