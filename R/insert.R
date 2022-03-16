@@ -56,7 +56,7 @@ delete_package <- function(package, version = NULL, type = c('src', 'win', 'mac'
 #' @rdname cranlike
 post_failure <- function(package, version, user = 'cran'){
   buildfields <- list('Builder-Status' = "FAILURE",
-                      'Builder-URL' = "http://someserver.com/ohnoes",
+                      'Builder-URL' = dummy_url(user),
                       'Builder-Maintainer' = dummy_maintainer_data(package))
   h <- curl::handle_setform(curl::new_handle(), .list = buildfields)
   url <- sprintf('http://localhost:3000/%s/packages/%s/%s/%s', user, package, version, 'failure')
@@ -72,7 +72,7 @@ post_package <- function(path, package, version, type = c('src', 'win', 'mac'), 
   type <- match.arg(type)
   h <- curl::new_handle()
   buildfields = list('Builder-Status' = "OK",
-                     'Builder-URL' = "http://localhost/test",
+                     'Builder-URL' = dummy_url(user),
                      'Builder-Registered' = 'true',
                      'Builder-Timestamp' = timestamp(),
                      'Builder-Sysdeps' = dummy_sysdeps(),
@@ -99,7 +99,7 @@ put_package <- function(path, package, version, type = c('src', 'win', 'mac'), u
   url <- sprintf('http://localhost:3000/%s/packages/%s/%s/%s/%s', user, package, version, type, md5)
   buildheaders <- c("Builder-Status: OK",
                     'Builder-Registered: true',
-                    paste0("Builder-URL: http://localhost/test/", type),
+                    paste0("Builder-URL: ", dummy_url(user)),
                     paste('Builder-Sysdeps:', dummy_sysdeps()),
                     paste('Builder-Timestamp:', timestamp()),
                     paste('Builder-Maintainer:', dummy_maintainer_data(package)),
@@ -216,4 +216,8 @@ base64_gzip <- function(bin){
 
 timestamp <- function(){
   format(unclass(Sys.time()))
+}
+
+dummy_url <- function(user){
+  sprintf('https://github.com/r-universe/%s/actions/runs/%d', user, round(runif(1, max = 1e9)))
 }
