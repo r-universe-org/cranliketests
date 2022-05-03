@@ -78,6 +78,7 @@ post_package <- function(path, package, version, type = c('src', 'win', 'mac'), 
                      'Builder-Sysdeps' = dummy_sysdeps(),
                      'Builder-Maintainer' = dummy_maintainer_data(package),
                      'Builder-Gitstats' = dummy_gitstats(package),
+                     'Builder-Rundeps' = dummy_rundeps(package, type),
                      'Builder-Upstream' = sprintf("https://github.com/%s/%s", user, package),
                      'Builder-Commit' = dummy_commit_data(package, version))
   if(type == 'src')
@@ -104,6 +105,7 @@ put_package <- function(path, package, version, type = c('src', 'win', 'mac'), u
                     paste('Builder-Timestamp:', timestamp()),
                     paste('Builder-Maintainer:', dummy_maintainer_data(package)),
                     paste('Builder-Gitstats:', dummy_gitstats(package)),
+                    paste('Builder-Rundeps:', dummy_rundeps(package, type)),
                     paste('Builder-Upstream:', sprintf("https://github.com/%s/%s", user, package)),
                     paste('Builder-Commit:',dummy_commit_data(package, version)))
   if(type == 'src')
@@ -175,7 +177,7 @@ dummy_gitstats <- function(pkg){
                  Rcpp = list(dirk = 4, test = 8, jerry = 2),
                  curl = list(jerry=999))
   updates <- dummy_updates()
-  json <- jsonlite::toJSON(list(contributions = contributions, updates = updates), auto_unbox = TRUE)
+  json <- jsonlite::toJSON(list(contributions = contributions, updates = updates, stars = nchar(pkg)), auto_unbox = TRUE)
   base64_gzip(json)
 }
 
@@ -220,4 +222,12 @@ timestamp <- function(){
 
 dummy_url <- function(user){
   sprintf('https://github.com/r-universe/%s/actions/runs/%d', user, round(runif(1, max = 1e9)))
+}
+
+dummy_rundeps <- function(package, type){
+  if(type == 'src'){
+    options(repos='https://cloud.r-project.org')
+    rundeps <- tools::package_dependencies(package, recursive = TRUE)[[package]]
+    base64_gzip(jsonlite::toJSON(rundeps))
+  } else ""
 }
