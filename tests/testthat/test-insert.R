@@ -1,7 +1,9 @@
-pkgfiles <- NULL
-pkgs <- sort(c("Rcpp", "curl", "jose", "openssl"))
+# copy packages from r-universe because they contain metadata
+pkgs <- sort(c("vctrs", "curl", "jose", "openssl"))
+options(repos = c('https://jeroen.r-universe.dev', 'https://r-lib.r-universe.dev'))
 packages <- db_packages()
 files <- db_files()
+pkgfiles <- NULL
 
 test_that("Sync with CRAN works works", {
   # Wipe the DB
@@ -46,7 +48,11 @@ test_that("Error handling for PUT/POST", {
       expect_equal(out$Package, name)
       expect_equal(out$Version, version)
       expect_equal(out$MD5sum, unname(tools::md5sum(path)))
-      expect_true(all(c("status", "url", "sysdeps") %in% names(out[['_builder']])))
+      expect_true(all(c("status", "maintainer") %in% names(out[['_builder']])))
+      if(type == 'src'){
+        content_fields <- c("assets", "cranurl", "exports", "gitstats", "help", "readme", "rundeps", "vignettes")
+        expect_true(all(content_fields %in% names(out[['_contents']])))
+      }
       out <- delete_package(package = name, version = version, type = type, user = 'user3')
       expect_equal(out$Package, name)
       expect_equal(out$Version, version)

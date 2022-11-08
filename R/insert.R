@@ -10,7 +10,7 @@
 #' @param user name of the user or organization to publish
 sync_with_cran <- function(pkgs, types = c('src', 'win', 'mac', 'oldwin', 'oldmac'),
                            dependencies = FALSE, user = 'cran'){
-  repos <- 'https://cloud.r-project.org'
+  repos <- getOption('repos')
   if(isTRUE(dependencies)){
     deps <- tools::package_dependencies(pkgs, recursive = TRUE)
     pkgs <- c(pkgs, unlist(unname(deps)))
@@ -19,7 +19,7 @@ sync_with_cran <- function(pkgs, types = c('src', 'win', 'mac', 'oldwin', 'oldma
   out <- lapply(types, function(type){
     dir.create(destdir <- file.path(tempdir(), type), showWarnings = FALSE)
     files <- utils::download.packages(pkgs, destdir = destdir, type = crantype(type),
-                               quiet = TRUE, contriburl = get_contrib_url(repos = repos, type = type))
+                                      quiet = TRUE, contriburl = get_contrib_url(repos = repos, type = type))
     t(apply(files, 1, function(row){
       path <- row[2]
       package <- row[1]
@@ -56,7 +56,6 @@ delete_package <- function(package, version = NULL, type = c('src', 'win', 'mac'
 #' @rdname cranlike
 post_failure <- function(package, version, user = 'cran'){
   buildfields <- list('Builder-Status' = "FAILURE",
-                      'Builder-URL' = dummy_url(user),
                       'Builder-Maintainer' = dummy_maintainer_data(package))
   h <- curl::handle_setform(curl::new_handle(), .list = buildfields)
   url <- sprintf('http://localhost:3000/%s/packages/%s/%s/%s', user, package, version, 'failure')
@@ -72,13 +71,8 @@ post_package <- function(path, package, version, type = c('src', 'win', 'mac'), 
   type <- match.arg(type)
   h <- curl::new_handle()
   buildfields = list('Builder-Status' = "OK",
-                     'Builder-URL' = dummy_url(user),
                      'Builder-Registered' = 'true',
-                     'Builder-Timestamp' = timestamp(),
-                     'Builder-Sysdeps' = dummy_sysdeps(),
                      'Builder-Maintainer' = dummy_maintainer_data(package),
-                     'Builder-Gitstats' = dummy_gitstats(package),
-                     'Builder-Rundeps' = dummy_rundeps(package, type),
                      'Builder-Upstream' = sprintf("https://github.com/%s/%s", user, package),
                      'Builder-Commit' = dummy_commit_data(package, version))
   if(type == 'src')
@@ -100,12 +94,7 @@ put_package <- function(path, package, version, type = c('src', 'win', 'mac'), u
   url <- sprintf('http://localhost:3000/%s/packages/%s/%s/%s/%s', user, package, version, type, md5)
   buildheaders <- c("Builder-Status: OK",
                     'Builder-Registered: true',
-                    paste0("Builder-URL: ", dummy_url(user)),
-                    paste('Builder-Sysdeps:', dummy_sysdeps()),
-                    paste('Builder-Timestamp:', timestamp()),
                     paste('Builder-Maintainer:', dummy_maintainer_data(package)),
-                    paste('Builder-Gitstats:', dummy_gitstats(package)),
-                    paste('Builder-Rundeps:', dummy_rundeps(package, type)),
                     paste('Builder-Upstream:', sprintf("https://github.com/%s/%s", user, package)),
                     paste('Builder-Commit:',dummy_commit_data(package, version)))
   if(type == 'src')
@@ -124,7 +113,7 @@ crantype <- function(type = c('src', 'win', 'mac', 'oldwin', 'oldmac')){
          win = 'win.binary',
          mac = 'mac.binary',
          oldwin = 'win.binary',
-         oldmac = 'mac.binary.el-capitan')
+         oldmac = 'mac.binary')
 }
 
 #' @export
@@ -149,7 +138,7 @@ parse_res <- function(res){
 get_contrib_url <- function(type, repos = 'https://cloud.r-project.org'){
   url <- utils::contrib.url(repos = repos, type = crantype(type))
   if(grepl("old", type))
-    url <- file.path(dirname(url), '3.6')
+    url <- file.path(dirname(url), '4.1')
   return(url)
 }
 
@@ -194,7 +183,7 @@ dummy_sysdeps <- function(){
 }
 
 dummy_maintainer_data <- function(pkg){
-  email <- ifelse(pkg == 'Rcpp', 'jeroen@test.nl', 'jeroen@berkeley.edu')
+  email <- ifelse(pkg == 'vctrs', 'jeroen@test.nl', 'jeroen@berkeley.edu')
   login <- if(pkg != 'jose') 'jeroen'
   orcid <- if(pkg == 'openssl') "123-455-yolo"
   out <- list(name="Jeroen", email = email, login = login, orcid = orcid)
