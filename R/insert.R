@@ -75,8 +75,8 @@ post_package <- function(path, package, version, type = c('src', 'win', 'mac'), 
                      'Builder-Maintainer' = dummy_maintainer_data(package),
                      'Builder-Upstream' = sprintf("https://github.com/%s/%s", user, package),
                      'Builder-Commit' = dummy_commit_data(package, version))
-  if(type == 'src')
-    buildfields <- c(buildfields, 'Builder-Vignettes' = pkg_vignettes_base64(path))
+  #if(type == 'src')
+  #  buildfields <- c(buildfields, 'Builder-Vignettes' = pkg_vignettes_base64(path))
   curl::handle_setform(h, file = curl::form_file(path), .list = buildfields)
   url <- sprintf('http://localhost:3000/%s/packages/%s/%s/%s', user, package, version, type)
   res <- curl::curl_fetch_memory(url, handle = h)
@@ -97,8 +97,8 @@ put_package <- function(path, package, version, type = c('src', 'win', 'mac'), u
                     paste('Builder-Maintainer:', dummy_maintainer_data(package)),
                     paste('Builder-Upstream:', sprintf("https://github.com/%s/%s", user, package)),
                     paste('Builder-Commit:',dummy_commit_data(package, version)))
-  if(type == 'src')
-    buildheaders <- c(buildheaders, paste('Builder-Vignettes:', pkg_vignettes_base64(path)))
+  #if(type == 'src')
+  #  buildheaders <- c(buildheaders, paste('Builder-Vignettes:', pkg_vignettes_base64(path)))
   res <- curl::curl_upload(path, url, verbose = FALSE, httpheader = buildheaders)
   out <- parse_res(res)
   stopifnot(out$Package == package, out$Version == version)
