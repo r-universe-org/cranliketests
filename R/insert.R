@@ -10,7 +10,6 @@
 #' @param user name of the user or organization to publish
 sync_with_cran <- function(pkgs, types = c('src', 'win', 'mac', 'oldwin', 'oldmac'),
                            dependencies = FALSE, user = 'cran'){
-  repos <- getOption('repos')
   if(isTRUE(dependencies)){
     deps <- tools::package_dependencies(pkgs, recursive = TRUE)
     pkgs <- c(pkgs, unlist(unname(deps)))
@@ -19,7 +18,7 @@ sync_with_cran <- function(pkgs, types = c('src', 'win', 'mac', 'oldwin', 'oldma
   out <- lapply(types, function(type){
     dir.create(destdir <- file.path(tempdir(), type), showWarnings = FALSE)
     files <- utils::download.packages(pkgs, destdir = destdir, type = crantype(type),
-                                      quiet = TRUE, contriburl = get_contrib_url(repos = repos, type = type))
+                                      quiet = TRUE, contriburl = get_contrib_url(type = type))
     t(apply(files, 1, function(row){
       path <- row[2]
       package <- row[1]
