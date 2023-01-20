@@ -134,7 +134,7 @@ parse_res <- function(res){
   jsonlite::fromJSON(text)
 }
 
-get_contrib_url <- function(type, repos = 'https://cloud.r-project.org'){
+get_contrib_url <- function(type, repos = getOption('repos', 'https://cloud.r-project.org')){
   url <- utils::contrib.url(repos = repos, type = crantype(type))
   if(grepl("old", type))
     url <- file.path(dirname(url), '4.1')
