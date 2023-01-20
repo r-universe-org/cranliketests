@@ -1,5 +1,5 @@
 # copy packages from r-universe because they contain metadata
-pkgs <- sort(c("vctrs", "curl", "jose", "openssl"))
+pkgs <- sort(c("vctrs", "curl", "jose", "jsonlite"))
 options(repos = c('https://jeroen.r-universe.dev', 'https://r-lib.r-universe.dev'))
 packages <- db_packages()
 files <- db_files()
