@@ -169,6 +169,7 @@ dummy_gitstats <- function(pkg){
   base64_gzip(json)
 }
 
+#' @importFrom stats runif
 dummy_updates <- function(){
   dates <- Sys.Date() - runif(100, max = 365)
   df <- as.data.frame(table(format(dates, '%Y-%W')))
