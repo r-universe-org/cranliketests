@@ -2,6 +2,7 @@
 % Please edit documentation in R/insert.R
 \name{sync_with_cran}
 \alias{sync_with_cran}
+\alias{sync_full_universe}
 \alias{delete_package}
 \alias{post_failure}
 \alias{post_package}
@@ -17,6 +18,8 @@ sync_with_cran(
   dependencies = FALSE,
   user = "cran"
 )
+
+sync_full_universe(user)
 
 delete_package(
   package,
