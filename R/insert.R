@@ -32,10 +32,12 @@ sync_with_cran <- function(pkgs, types = c('src', 'win', 'mac', 'oldwin', 'oldma
 
 #' @export
 #' @rdname cranlike
-sync_full_universe <- function(user){
+sync_full_universe <- function(user, pkgs = NULL){
   url <- sprintf('https://%s.r-universe.dev', user)
   options(repos = url)
-  pkgs <- row.names(available.packages(repos = url))
+  if(!length(pkgs)){
+    pkgs <- row.names(available.packages(repos = url))
+  }
   sync_with_cran(pkgs, user = user)
 }
 

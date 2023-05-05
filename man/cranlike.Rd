@@ -19,7 +19,7 @@ sync_with_cran(
   user = "cran"
 )
 
-sync_full_universe(user)
+sync_full_universe(user, pkgs = NULL)
 
 delete_package(
   package,
