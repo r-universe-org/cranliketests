@@ -50,7 +50,7 @@ test_that("Error handling for PUT/POST", {
       expect_equal(out$MD5sum, unname(tools::md5sum(path)))
       expect_true(all(c("_status", "_maintainer") %in% names(out)))
       if(type == 'src'){
-        content_fields <- c("_assets", "_cranurl", "_exports", "_gitstats", "_help", "_readme", "_rundeps", "_vignettes")
+        content_fields <- c("_assets", "_cranurl", "_exports", "_stars", "_contributions", "_help", "_readme", "_rundeps", "_vignettes")
         expect_true(all(content_fields %in% names(out)))
       }
       out <- delete_package(package = name, version = version, type = type, user = 'user3')
