@@ -148,7 +148,7 @@ parse_res <- function(res){
 get_contrib_url <- function(type, repos = getOption('repos', 'https://cloud.r-project.org')){
   url <- utils::contrib.url(repos = repos, type = crantype(type))
   if(grepl("old", type))
-    url <- file.path(dirname(url), '4.2')
+    url <- file.path(dirname(url), '4.3')
   return(url)
 }
 
