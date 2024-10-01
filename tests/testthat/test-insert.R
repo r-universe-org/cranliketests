@@ -1,6 +1,6 @@
 # copy packages from r-universe because they contain metadata
-pkgs <- sort(c("vctrs", "curl", "jose", "jsonlite"))
-options(repos = c('https://jeroen.r-universe.dev', 'https://r-lib.r-universe.dev'))
+pkgs <- sort(c("dplyr", "curl", "ggplot2", "jsonlite"))
+options(repos = c('https://jeroen.r-universe.dev', 'https://tidyverse.r-universe.dev'))
 packages <- db_packages()
 files <- db_files()
 pkgfiles <- NULL
@@ -155,7 +155,7 @@ test_that("Deleting packages",{
 
 test_that("APIs works",{
   pkgs <- jsonlite::fromJSON('http://localhost:3000/jeroen/api/ls')
-  expect_equal(sort(pkgs), c("jsonlite", "vctrs"))
+  expect_equal(sort(pkgs), c("ggplot2", "jsonlite"))
 
   pkginfo <- jsonlite::fromJSON('http://localhost:3000/jeroen/api/packages/jsonlite')
   expect_s3_class(pkginfo[['_dependencies']], 'data.frame')
@@ -198,6 +198,20 @@ test_that("Badges work", {
   test_badge(':datasets')
   test_badge(':articles')
   test_badge(':packages')
+})
 
+test_that("Datasets can be loaded work", {
+  test_get <- function(api, type){
+    req <- curl::curl_fetch_memory(paste0('http://localhost:3000/jeroen', api))
+    expect_equal(req$status_code, 200)
+    expect_equal(req$type, type)
+    expect_gt(length(req$content), 100)
+  }
 
+  test_get("/ggplot2/data/diamonds/xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+  test_get("/ggplot2/data/diamonds/csv", "text/csv; charset=utf-8")
+  test_get("/ggplot2/data/diamonds/json", "application/json; charset=utf-8")
+  test_get("/ggplot2/data/diamonds/ndjson", "text/plain; charset=utf-8")
+  test_get("/ggplot2/data/diamonds/rds", "application/octet-stream")
+  test_get("/ggplot2/data/diamonds/rda", "application/octet-stream")
 })
