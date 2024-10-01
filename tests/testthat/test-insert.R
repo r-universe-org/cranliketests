@@ -11,10 +11,10 @@ test_that("Sync with CRAN works works", {
   files$drop()
 
   # Upload some stuff from CRAN
-  pkgfiles <<- sync_with_cran(pkgs, user = 'user1')
+  pkgfiles <<- sync_with_cran(pkgs, user = 'jeroen')
 
   # Test overwriting
-  sync_with_cran(pkgs[1], user = 'user1')
+  sync_with_cran(pkgs[1], user = 'jeroen')
   expect_equal(nrow(packages$find()), length(pkgs) * 5)
   expect_equal(nrow(files$find()), length(pkgs) * 5)
 
@@ -74,10 +74,10 @@ for(type in c('src', 'win', 'mac')){
 
     # Compare data from DB
     query <- if(type == 'src'){
-      sprintf('{"_type": "%s", "_user": "user1"}', type)
+      sprintf('{"_type": "%s", "_user": "jeroen"}', type)
     } else {
       r_current <- substring(getRversion(), 0, 3)
-      sprintf('{"_type": "%s", "_user": "user1", "Built.R" : {"$regex": "^%s", "$options" : "i"}}', type, r_current)
+      sprintf('{"_type": "%s", "_user": "jeroen", "Built.R" : {"$regex": "^%s", "$options" : "i"}}', type, r_current)
     }
     pkgdata <- packages$find(query)
     filedata <- files$find()
@@ -86,13 +86,13 @@ for(type in c('src', 'win', 'mac')){
     expect_true(all(hashes %in% filedata$id))
 
     # Compare data from cran-like API
-    repo_src <- available.packages(repos = 'http://localhost:3000/user1', type = crantype(type))
+    repo_src <- available.packages(repos = 'http://localhost:3000/jeroen', type = crantype(type))
     repo_df <- as.data.frame(repo_src, row.names = FALSE, stringsAsFactors = FALSE)
     expect_equal(sort(row.names(repo_src)), pkgs)
     expect_equal(unname(repo_src[pkgs,'MD5sum']), hashes)
 
     # Eror handling
-    url <- contrib.url('http://localhost:3000/user1', crantype(type))
+    url <- contrib.url('http://localhost:3000/jeroen', crantype(type))
     df <- jsonlite::stream_in(curl::curl(url), verbose = FALSE)
     fields <- c("Package", "Version", "MD5sum", "NeedsCompilation")
     expect_equal(df[fields], repo_df[fields])
@@ -126,41 +126,42 @@ test_that("Installing packages", {
   # Installing source packages
   dst <- tempfile()
   dir.create(dst)
-  install.packages(pkgs, dst, repos = 'http://localhost:3000/user1', type = 'source', quiet = TRUE)
+  install.packages(pkgs, dst, repos = 'http://localhost:3000/jeroen', type = 'source', quiet = TRUE)
   expect_true(all(file.exists(file.path(dst, pkgs))))
 
   # Installing binary packages
   dst <- tempfile()
   dir.create(dst)
   if(Sys.info()[['sysname']] == 'Darwin'){
-    install.packages(pkgs, dst, repos = 'http://localhost:3000/user1', type = crantype('mac'), quiet = TRUE)
+    install.packages(pkgs, dst, repos = 'http://localhost:3000/jeroen', type = crantype('mac'), quiet = TRUE)
     expect_true(all(file.exists(file.path(dst, pkgs))))
   } else if(Sys.info()[['sysname']] == 'Windows'){
-    install.packages(pkgs, dst, repos = 'http://localhost:3000/user1', type = crantype('win'), quiet = TRUE)
+    install.packages(pkgs, dst, repos = 'http://localhost:3000/jeroen', type = crantype('win'), quiet = TRUE)
     expect_true(all(file.exists(file.path(dst, pkgs))))
   }
 })
 
 test_that("Deleting packages",{
-  # Delete a package unique to user1
-  delete_package(pkgs[1], user = 'user1')
+  # Delete a package unique to jeroen
+  delete_package(pkgs[1], user = 'jeroen')
   expect_equal(nrow(packages$find()), (1+length(pkgs[-1])) * 5)
   expect_equal(nrow(files$find()), length(pkgs[-1]) * 5)
 
-  # Delete a package from user1 (but user2 still has it)
-  delete_package(pkgs[2], user = 'user1')
+  # Delete a package from jeroen (but user2 still has it)
+  delete_package(pkgs[2], user = 'jeroen')
   expect_equal(nrow(packages$find()), (1+length(pkgs[-c(1:2)])) * 5)
   expect_equal(nrow(files$find()), length(pkgs[-1]) * 5)
 })
 
-test_that("API works",{
-  pkginfo <- jsonlite::fromJSON('http://localhost:3000/user1/api/packages/jsonlite')
+test_that("APIs works",{
+  pkgs <- jsonlite::fromJSON('http://localhost:3000/jeroen/api/ls')
+  expect_equal(sort(pkgs), c("jsonlite", "vctrs"))
+
+  pkginfo <- jsonlite::fromJSON('http://localhost:3000/jeroen/api/packages/jsonlite')
   expect_s3_class(pkginfo[['_dependencies']], 'data.frame')
   expect_type(pkginfo[['_assets']], 'character')
-})
 
-test_that("Snapshot works",{
-  req <- curl::curl_fetch_memory('http://localhost:3000/user1/api/snapshot')
+  req <- curl::curl_fetch_memory('http://localhost:3000/jeroen/api/snapshot')
   expect_equal(req$status_code, 200)
   expect_equal(req$type, "application/zip")
   expect_gt(length(req$content), 1e6)
@@ -168,7 +169,7 @@ test_that("Snapshot works",{
 
 test_that("Extra jsonlite files can be downloaded", {
   test_get <- function(api, type){
-    req <- curl::curl_fetch_memory(paste0('http://localhost:3000/user1/jsonlite', api))
+    req <- curl::curl_fetch_memory(paste0('http://localhost:3000/jeroen/jsonlite', api))
     expect_equal(req$status_code, 200)
     expect_equal(req$type, type)
     expect_gt(length(req$content), 100)
@@ -181,4 +182,22 @@ test_that("Extra jsonlite files can be downloaded", {
   test_get('/citation.txt', 'text/plain; charset=utf-8')
   test_get('/citation.json', 'application/json; charset=utf-8')
   test_get('/citation.html', 'text/html; charset=utf-8')
+})
+
+test_that("Badges work", {
+  test_badge <- function(name){
+    req <- curl::curl_fetch_memory(paste0('http://localhost:3000/jeroen/badges/', name))
+    expect_equal(req$status_code, 200)
+    expect_equal(req$type, 'image/svg+xml; charset=utf-8')
+    expect_gt(length(req$content), 100)
+  }
+  test_badge('jsonlite')
+  test_badge('vctrs')
+  test_badge(':name')
+  test_badge(':registry')
+  test_badge(':datasets')
+  test_badge(':articles')
+  test_badge(':packages')
+
+
 })
