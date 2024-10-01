@@ -152,3 +152,33 @@ test_that("Deleting packages",{
   expect_equal(nrow(packages$find()), (1+length(pkgs[-c(1:2)])) * 5)
   expect_equal(nrow(files$find()), length(pkgs[-1]) * 5)
 })
+
+test_that("API works",{
+  pkginfo <- jsonlite::fromJSON('http://localhost:3000/user1/api/packages/jsonlite')
+  expect_s3_class(pkginfo[['_dependencies']], 'data.frame')
+  expect_type(pkginfo[['_assets']], 'character')
+})
+
+test_that("Snapshot works",{
+  req <- curl::curl_fetch_memory('http://localhost:3000/user1/api/snapshot')
+  expect_equal(req$status_code, 200)
+  expect_equal(req$type, "application/zip")
+  expect_gt(length(req$content), 1e6)
+})
+
+test_that("Extra jsonlite files can be downloaded", {
+  test_get <- function(api, type){
+    req <- curl::curl_fetch_memory(paste0('http://localhost:3000/user1/jsonlite', api))
+    expect_equal(req$status_code, 200)
+    expect_equal(req$type, type)
+    expect_gt(length(req$content), 100)
+  }
+  test_get('/doc/README', 'text/html; charset=utf-8')
+  test_get('/doc/README.md', 'text/markdown; charset=utf-8')
+  test_get('/doc/json-mapping.pdf', 'application/pdf')
+  test_get('/doc/json-apis.html', 'text/html; charset=utf-8')
+  test_get('/citation.cff', 'text/plain; charset=utf-8')
+  test_get('/citation.txt', 'text/plain; charset=utf-8')
+  test_get('/citation.json', 'application/json; charset=utf-8')
+  test_get('/citation.html', 'text/html; charset=utf-8')
+})
