@@ -165,6 +165,10 @@ test_that("APIs works",{
   expect_equal(req$status_code, 200)
   expect_equal(req$type, "application/zip")
   expect_gt(length(req$content), 1e6)
+
+  req <- curl::curl_fetch_memory('http://localhost:3000/jeroen/feed.xml')
+  expect_equal(req$status_code, 200)
+  expect_equal(req$type, "application/xml")
 })
 
 test_that("Extra jsonlite files can be downloaded", {
