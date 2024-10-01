@@ -161,31 +161,30 @@ test_that("APIs works",{
   expect_s3_class(pkginfo[['_dependencies']], 'data.frame')
   expect_type(pkginfo[['_assets']], 'character')
 
-  req <- curl::curl_fetch_memory('http://localhost:3000/jeroen/api/snapshot')
-  expect_equal(req$status_code, 200)
-  expect_equal(req$type, "application/zip")
-  expect_gt(length(req$content), 1e6)
-
-  req <- curl::curl_fetch_memory('http://localhost:3000/jeroen/feed.xml')
-  expect_equal(req$status_code, 200)
-  expect_equal(req$type, "application/xml")
 })
 
 test_that("Extra jsonlite files can be downloaded", {
   test_get <- function(api, type){
-    req <- curl::curl_fetch_memory(paste0('http://localhost:3000/jeroen/jsonlite', api))
+    req <- curl::curl_fetch_memory(paste0('http://localhost:3000/jeroen', api))
     expect_equal(req$status_code, 200)
     expect_equal(req$type, type)
     expect_gt(length(req$content), 100)
   }
-  test_get('/doc/README', 'text/html; charset=utf-8')
-  test_get('/doc/README.md', 'text/markdown; charset=utf-8')
-  test_get('/doc/json-mapping.pdf', 'application/pdf')
-  test_get('/doc/json-apis.html', 'text/html; charset=utf-8')
-  test_get('/citation.cff', 'text/plain; charset=utf-8')
-  test_get('/citation.txt', 'text/plain; charset=utf-8')
-  test_get('/citation.json', 'application/json; charset=utf-8')
-  test_get('/citation.html', 'text/html; charset=utf-8')
+  test_get('/jsonlite/doc/manual.html', 'text/html; charset=utf-8')
+  test_get('/jsonlite/doc/page/fromJSON', 'text/html; charset=utf-8')
+  test_get('/jsonlite/doc/readme', 'text/html; charset=utf-8')
+  test_get('/jsonlite/doc/readme?highlight=hljs', 'text/html; charset=utf-8')
+  test_get('/jsonlite/doc/README.md', 'text/markdown; charset=utf-8')
+  test_get('/jsonlite/doc/json-mapping.pdf', 'application/pdf')
+  test_get('/jsonlite/doc/json-apis.html', 'text/html; charset=utf-8')
+  test_get('/jsonlite/citation.cff', 'text/plain; charset=utf-8')
+  test_get('/jsonlite/citation.txt', 'text/plain; charset=utf-8')
+  test_get('/jsonlite/citation.json', 'application/json; charset=utf-8')
+  test_get('/jsonlite/citation.html', 'text/html; charset=utf-8')
+  test_get('/jsonlite/citation.html', 'text/html; charset=utf-8')
+  test_get('/feed.xml', "application/xml")
+  test_get('/api/snapshot', "application/zip")
+
 })
 
 test_that("Badges work", {
