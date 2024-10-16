@@ -79,8 +79,10 @@ post_failure <- function(package, version, user = 'cran'){
 #' @rdname cranlike
 post_package <- function(path, package, version, type = c('src', 'win', 'mac'), user = 'cran'){
   type <- match.arg(type)
+  sha <- shasum(path)
   h <- curl::new_handle()
-  buildfields = list('Builder-Status' = "OK",
+  buildfields = list(key = sha,
+                     'Builder-Status' = "OK",
                      'Builder-Registered' = 'true',
                      'Builder-Maintainer' = dummy_maintainer_data(package),
                      'Builder-Upstream' = sprintf("https://github.com/%s/%s", user, package),
@@ -100,8 +102,8 @@ post_package <- function(path, package, version, type = c('src', 'win', 'mac'), 
 #' @param path full path to file to upload
 put_package <- function(path, package, version, type = c('src', 'win', 'mac'), user = 'cran'){
   type <- match.arg(type)
-  md5 <- unname(tools::md5sum(path))
-  url <- sprintf('http://localhost:3000/%s/packages/%s/%s/%s/%s', user, package, version, type, md5)
+  sha <- shasum(path)
+  url <- sprintf('http://localhost:3000/%s/packages/%s/%s/%s/%s', user, package, version, type, sha)
   buildheaders <- c("Builder-Status: OK",
                     'Builder-Registered: true',
                     paste('Builder-Maintainer:', dummy_maintainer_data(package)),
@@ -230,4 +232,13 @@ dummy_rundeps <- function(package, type){
     rundeps <- tools::package_dependencies(package, recursive = TRUE)[[package]]
     base64_gzip(jsonlite::toJSON(rundeps))
   } else ""
+}
+
+shasum_one <- function(path){
+  out <- system2("shasum", c('-a256', normalizePath(path, mustWork = TRUE)), stdout = TRUE)
+  sub(" .*", "", out)
+}
+
+shasum <- function(paths){
+  vapply(paths, shasum_one, character(1), USE.NAMES = FALSE)
 }

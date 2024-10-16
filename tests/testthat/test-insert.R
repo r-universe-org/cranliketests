@@ -70,7 +70,8 @@ for(type in c('src', 'win', 'mac')){
   test_that(paste(type, 'repository'), {
     paths <- pkgfiles[[type]][,1]
     pkgs <- pkgfiles[[type]][,2]
-    hashes <- unname(tools::md5sum(paths))
+    md5s <- unname(tools::md5sum(paths))
+    hashes <- shasum(paths)
 
     # Compare data from DB
     query <- if(type == 'src'){
@@ -82,14 +83,14 @@ for(type in c('src', 'win', 'mac')){
     pkgdata <- packages$find(query)
     filedata <- files$find()
     expect_equal(sort(unique(pkgdata$Package)), pkgs)
-    expect_equal(unique(sort(pkgdata$MD5sum)), sort(hashes))
+    expect_equal(unique(sort(pkgdata$MD5sum)), sort(md5s))
     expect_true(all(hashes %in% filedata$id))
 
     # Compare data from cran-like API
     repo_src <- available.packages(repos = 'http://localhost:3000/jeroen', type = crantype(type))
     repo_df <- as.data.frame(repo_src, row.names = FALSE, stringsAsFactors = FALSE)
     expect_equal(sort(row.names(repo_src)), pkgs)
-    expect_equal(unname(repo_src[pkgs,'MD5sum']), hashes)
+    expect_equal(unname(repo_src[pkgs,'MD5sum']), md5s)
 
     # Eror handling
     url <- contrib.url('http://localhost:3000/jeroen', crantype(type))
