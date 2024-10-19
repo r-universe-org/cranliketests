@@ -235,8 +235,7 @@ dummy_rundeps <- function(package, type){
 }
 
 shasum_one <- function(path){
-  out <- system2("shasum", c('-a256', normalizePath(path, mustWork = TRUE)), stdout = TRUE)
-  sub(" .*", "", out)
+  as.character(openssl::sha256(file(path, raw = TRUE)))
 }
 
 shasum <- function(paths){
