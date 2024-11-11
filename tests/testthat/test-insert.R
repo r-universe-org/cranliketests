@@ -198,10 +198,11 @@ test_that("Badges work", {
   test_badge('jsonlite')
   test_badge('vctrs')
   test_badge(':name')
-  test_badge(':registry')
   test_badge(':datasets')
   test_badge(':articles')
   test_badge(':packages')
+  test_badge(':registry')
+
 })
 
 test_that("Datasets can be loaded work", {

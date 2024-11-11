@@ -123,9 +123,9 @@ crantype <- function(type = c('src', 'win', 'mac', 'oldwin', 'oldmac')){
   switch(match.arg(type),
          src = 'source',
          win = 'win.binary',
-         mac = 'mac.binary',
+         mac = 'binary',
          oldwin = 'win.binary',
-         oldmac = 'mac.binary')
+         oldmac = 'binary')
 }
 
 #' @export
