@@ -183,9 +183,10 @@ test_that("Extra jsonlite files can be downloaded", {
   test_get('/jsonlite/citation.json', 'application/json; charset=utf-8')
   test_get('/jsonlite/citation.html', 'text/html; charset=utf-8')
   test_get('/jsonlite/citation.html', 'text/html; charset=utf-8')
-  test_get('/feed.xml', "application/xml")
   test_get('/api/snapshot', "application/zip")
 
+  # Ported to frontend for now
+  #test_get('/feed.xml', "application/xml")
 })
 
 test_that("Badges work", {
