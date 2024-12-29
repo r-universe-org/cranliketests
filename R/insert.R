@@ -48,7 +48,7 @@ sync_full_universe <- function(user, pkgs = NULL){
 #' @param type one of src, win, mac
 delete_package <- function(package, version = NULL, type = c('src', 'win', 'mac'), user = 'cran'){
   h <- curl::new_handle(customrequest = 'DELETE')
-  url <- sprintf("http://localhost:3000/%s/packages/%s", user, package);
+  url <- sprintf("http://localhost:3000/%s/api/packages/%s", user, package);
   if(length(version)){
     url <- paste0(url, "/", version)
     if(length(type)){
@@ -68,7 +68,7 @@ post_failure <- function(package, version, user = 'cran'){
   buildfields <- list('Builder-Status' = "FAILURE",
                       'Builder-Maintainer' = dummy_maintainer_data(package))
   h <- curl::handle_setform(curl::new_handle(), .list = buildfields)
-  url <- sprintf('http://localhost:3000/%s/packages/%s/%s/%s', user, package, version, 'failure')
+  url <- sprintf('http://localhost:3000/%s/api/packages/%s/%s/%s', user, package, version, 'failure')
   res <- curl::curl_fetch_memory(url, handle = h)
   out <- parse_res(res)
   stopifnot(out$Package == package, out$Version == version)
@@ -90,7 +90,7 @@ post_package <- function(path, package, version, type = c('src', 'win', 'mac'), 
   #if(type == 'src')
   #  buildfields <- c(buildfields, 'Builder-Vignettes' = pkg_vignettes_base64(path))
   curl::handle_setform(h, file = curl::form_file(path), .list = buildfields)
-  url <- sprintf('http://localhost:3000/%s/packages/%s/%s/%s', user, package, version, type)
+  url <- sprintf('http://localhost:3000/%s/api/packages/%s/%s/%s', user, package, version, type)
   res <- curl::curl_fetch_memory(url, handle = h)
   out <- parse_res(res)
   stopifnot(out$Package == package, out$Version == version)
@@ -103,7 +103,7 @@ post_package <- function(path, package, version, type = c('src', 'win', 'mac'), 
 put_package <- function(path, package, version, type = c('src', 'win', 'mac'), user = 'cran'){
   type <- match.arg(type)
   sha <- shasum(path)
-  url <- sprintf('http://localhost:3000/%s/packages/%s/%s/%s/%s', user, package, version, type, sha)
+  url <- sprintf('http://localhost:3000/%s/api/packages/%s/%s/%s/%s', user, package, version, type, sha)
   buildheaders <- c("Builder-Status: OK",
                     'Builder-Registered: true',
                     paste('Builder-Maintainer:', dummy_maintainer_data(package)),
