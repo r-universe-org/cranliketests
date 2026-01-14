@@ -47,8 +47,8 @@ sync_full_universe <- function(user, pkgs = NULL){
 #' @param version optional string with version
 #' @param type one of src, win, mac
 delete_package <- function(package, version = NULL, type = c('src', 'win', 'mac'), user = 'cran'){
-  h <- curl::new_handle(customrequest = 'DELETE')
-  url <- sprintf("http://localhost:3000/%s/api/packages/%s", user, package);
+  h <- curl::new_handle(customrequest = 'DELETE', connect_to="::localhost:3000")
+  url <- sprintf("http://%s.r-universe.dev/api/packages/%s", user, package);
   if(length(version)){
     url <- paste0(url, "/", version)
     if(length(type)){
@@ -66,9 +66,10 @@ delete_package <- function(package, version = NULL, type = c('src', 'win', 'mac'
 #' @rdname cranlike
 post_failure <- function(package, version, user = 'cran'){
   buildfields <- list('Builder-Status' = "FAILURE",
+                      'Builder-Upstream' = 'https://github.com/jeroen/yolo',
                       'Builder-Maintainer' = dummy_maintainer_data(package))
-  h <- curl::handle_setform(curl::new_handle(), .list = buildfields)
-  url <- sprintf('http://localhost:3000/%s/api/packages/%s/%s/%s', user, package, version, 'failure')
+  h <- curl::handle_setform(curl::new_handle(connect_to="::localhost:3000"), .list = buildfields)
+  url <- sprintf('http://%s.r-universe.dev/api/packages/%s/%s/%s', user, package, version, 'failure')
   res <- curl::curl_fetch_memory(url, handle = h)
   out <- parse_res(res)
   stopifnot(out$Package == package, out$Version == version)
@@ -80,7 +81,7 @@ post_failure <- function(package, version, user = 'cran'){
 post_package <- function(path, package, version, type = c('src', 'win', 'mac'), user = 'cran'){
   type <- match.arg(type)
   sha <- shasum(path)
-  h <- curl::new_handle()
+  h <- curl::new_handle(connect_to="::localhost:3000")
   buildfields = list(key = sha,
                      'Builder-Status' = "OK",
                      'Builder-Registered' = 'true',
@@ -90,12 +91,13 @@ post_package <- function(path, package, version, type = c('src', 'win', 'mac'), 
   #if(type == 'src')
   #  buildfields <- c(buildfields, 'Builder-Vignettes' = pkg_vignettes_base64(path))
   curl::handle_setform(h, file = curl::form_file(path), .list = buildfields)
-  url <- sprintf('http://localhost:3000/%s/api/packages/%s/%s/%s', user, package, version, type)
+  url <- sprintf('http://%s.r-universe.dev/api/packages/%s/%s/%s', user, package, version, type)
   res <- curl::curl_fetch_memory(url, handle = h)
   out <- parse_res(res)
   stopifnot(out$Package == package, out$Version == version)
   return(out)
 }
+
 
 #' @export
 #' @rdname cranlike
@@ -103,15 +105,23 @@ post_package <- function(path, package, version, type = c('src', 'win', 'mac'), 
 put_package <- function(path, package, version, type = c('src', 'win', 'mac'), user = 'cran'){
   type <- match.arg(type)
   sha <- shasum(path)
-  url <- sprintf('http://localhost:3000/%s/api/packages/%s/%s/%s/%s', user, package, version, type, sha)
+  url <- sprintf('http://%s.r-universe.dev/api/packages/%s/%s/%s/%s', user, package, version, type, sha)
+  info <- jsonlite::fromJSON(sprintf('https://%s.r-universe.dev/api/packages/%s', user, package))
   buildheaders <- c("Builder-Status: OK",
                     'Builder-Registered: true',
-                    paste('Builder-Maintainer:', dummy_maintainer_data(package)),
-                    paste('Builder-Upstream:', sprintf("https://github.com/%s/%s", user, package)),
-                    paste('Builder-Commit:',dummy_commit_data(package, version)))
+                    paste('Builder-Registered:', info$`_registered`),
+                    paste('Builder-Distro:', info$`_distro`),
+                    paste('Builder-Status:', info$`_status`),
+                    paste('Builder-Check:', info$`_check`),
+                    paste('Builder-Buildurl:', info$`_buildurl`),
+                    paste('Builder-Maintainer:', gzjson_b64(info$`_maintainer`)),
+                    paste('Builder-Commit:', gzjson_b64(info$`_commit`)),
+                    paste('Builder-Jobs:', gzjson_b64(info$`_jobs`)),
+                    paste('Builder-Upstream:', info$`_upstream`))
+
   #if(type == 'src')
   #  buildheaders <- c(buildheaders, paste('Builder-Vignettes:', pkg_vignettes_base64(path)))
-  res <- curl::curl_upload(path, url, verbose = FALSE, httpheader = buildheaders)
+  res <- curl::curl_upload(path, url, verbose = TRUE, httpheader = buildheaders, connect_to="::localhost:3000")
   out <- parse_res(res)
   stopifnot(out$Package == package, out$Version == version)
   return(out)
