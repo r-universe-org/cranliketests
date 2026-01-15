@@ -141,13 +141,13 @@ crantype <- function(type = c('src', 'win', 'mac', 'oldwin', 'oldmac')){
 #' @export
 #' @rdname cranlike
 db_packages <- function(){
-  mongolite::mongo('packages', db = 'cranlike', url = 'mongodb://localhost')
+  mongolite::mongo('packages', db = 'cranlike', url = 'mongodb://localhost:3993')
 }
 
 #' @export
 #' @rdname cranlike
 db_files <- function(){
-  mongolite::gridfs(db = 'cranlike', prefix = 'files', url = 'mongodb://localhost')
+  mongolite::gridfs(db = 'cranlike', prefix = 'files', url = 'mongodb://localhost:3993')
 }
 
 parse_res <- function(res){
