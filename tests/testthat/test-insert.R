@@ -1,4 +1,6 @@
 # copy packages from r-universe because they contain metadata
+server <- processx::process$new(system.file("run-local.sh", package = 'cranliketests'))
+Sys.sleep(2)
 pkgs <- sort(c("dplyr", "curl", "ggplot2", "jsonlite"))
 packages <- db_packages()
 files <- db_files()
