@@ -46,13 +46,29 @@ test_that("CRUD operations", {
   mirror_package('curl', to = 'localhost')
   expect_equal(packages$count(), total)
   expect_equal(nrow(files$find()), total)
+})
+
+test_that("Download entire repo", {
 
   # Count from S3 List Bucket
+  total <- packages$count()
   doc <- xml2::read_xml('http://localhost:3000/?list-type=2') |> xml2::xml_ns_strip()
-  files <- xml2::xml_find_all(doc, '/ListBucketResult/Contents/Key') |> xml2::xml_text()
-  s3packages <- grep('PACKAGES', files, invert = TRUE, value = TRUE)
+  s3files <- xml2::xml_find_all(doc, '/ListBucketResult/Contents/Key') |> xml2::xml_text()
+  s3packages <- grep('PACKAGES', s3files, invert = TRUE, value = TRUE)
   is_biarch <- packages$find('{"NeedsCompilation":"no", "_type": {"$in":["mac", "linux"]}}') |> nrow()
   expect_length(s3packages, total + is_biarch)
+
+  # Download snapshot
+  snapfile <- tempfile(fileext = '.zip')
+  snapdir <- tempfile()
+  dir.create(snapdir)
+  curl::curl_download('http://localhost:3000/api/snapshot/zip', snapfile)
+  unzip(snapfile, exdir = snapdir)
+  snapshot_files <- list.files(snapdir, recursive = TRUE)
+  docs_files <- sub('^src/contrib/(.*)_.*', 'docs/\\1.html', grep('^src/contrib/(.*)_.*', s3packages, value = TRUE))
+  expect_setequal(c(s3files, docs_files), snapshot_files)
+  unlink(snapfile, recursive = TRUE)
+  unlink(snapdir, recursive = TRUE)
 
 })
 

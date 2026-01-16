@@ -19,6 +19,7 @@ mirror_package <- function(package, from = NULL, to = 'localhost'){
     sprintf('https://cran.dev/%s/files', package)
   }
   files <- jsonlite::fromJSON(endpoint, simplifyVector = FALSE)
+  files <- Filter(function(x){x[['_type']] != 'failure'}, files)
   for(info in files){
     upload_package(info, to)
   }
