@@ -46,6 +46,14 @@ test_that("CRUD operations", {
   mirror_package('curl', to = 'localhost')
   expect_equal(packages$count(), total)
   expect_equal(nrow(files$find()), total)
+
+  # Count from S3 List Bucket
+  doc <- xml2::read_xml('http://localhost:3000/?list-type=2') |> xml2::xml_ns_strip()
+  files <- xml2::xml_find_all(doc, '/ListBucketResult/Contents/Key') |> xml2::xml_text()
+  s3packages <- grep('PACKAGES', files, invert = TRUE, value = TRUE)
+  is_biarch <- packages$find('{"NeedsCompilation":"no", "_type": {"$in":["mac", "linux"]}}') |> nrow()
+  expect_length(s3packages, total + is_biarch)
+
 })
 
 test_that("APIs works",{
@@ -70,7 +78,8 @@ test_that("APIs works",{
 
 })
 
-test_that("XML feed", {
+test_that("XML feeds", {
+  # ATOM feed
   doc <- xml2::read_xml('http://localhost:3000/feed.xml')
   xmlpkgs <- xml2::xml_find_all(doc, '//item//r:package') |> xml2::xml_text()
   expect_setequal(pkgs, xmlpkgs)
