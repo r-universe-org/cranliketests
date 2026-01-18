@@ -99,6 +99,12 @@ test_that("XML feeds", {
   doc <- xml2::read_xml('http://localhost:3000/feed.xml')
   xmlpkgs <- xml2::xml_find_all(doc, '//item//r:package') |> xml2::xml_text()
   expect_setequal(pkgs, xmlpkgs)
+
+  # Sitemap
+  sitemap <- xml2::read_xml('http://localhost:3000/sitemap.xml') |> xml2::xml_ns_strip()
+  sitemap_urls <- xml2::xml_find_all(sitemap, '//sitemap/loc') |> xml2::xml_text()
+  expect_setequal(sprintf('https://localhost.r-universe.dev/%s/sitemap.xml', pkgs), sitemap_urls)
+
 })
 
 test_that("Test some errors", {
