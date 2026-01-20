@@ -65,10 +65,10 @@ delete_package <- function(package, version = NULL, type = c('src', 'win', 'mac'
 #' @export
 #' @rdname cranlike
 post_failure <- function(package, version, user = 'cran'){
-  buildfields <- list('Builder-Status' = "FAILURE",
+  buildfields <- c('Builder-Status' = "FAILURE",
                       'Builder-Upstream' = 'https://github.com/jeroen/yolo',
                       'Builder-Maintainer' = dummy_maintainer_data(package))
-  h <- curl::handle_setform(curl::new_handle(connect_to="::localhost:3000"), .list = buildfields)
+  h <- curl::new_handle(connect_to="::localhost:3000", postfields = curl:::build_query_urlencoded(buildfields))
   url <- sprintf('http://%s.r-universe.dev/api/packages/%s/%s/%s', user, package, version, 'failure')
   res <- curl::curl_fetch_memory(url, handle = h)
   out <- parse_res(res)

@@ -79,7 +79,7 @@ test_that("APIs works",{
 
   # General packages API
   apipkgs <- jsonlite::fromJSON('http://localhost:3000/api/packages')
-  streampkgs <- jsonlite::stream_in(url('http://localhost:3000/api/packages?stream=true'))
+  streampkgs <- jsonlite::stream_in(url('http://localhost:3000/api/packages?stream=true'), verbose = FALSE)
   expect_setequal(apipkgs, streampkgs)
   expect_setequal(pkgs, apipkgs$Package)
   lapply(apipkgs[['_assets']], function(assets){
