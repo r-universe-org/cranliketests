@@ -86,6 +86,14 @@ test_that("APIs works",{
     expect_in(c("extra/citation.html", "extra/NEWS.html", "manual.pdf"), assets)
   })
 
+  # DbDump API
+  tmp <- tempfile()
+  curl::curl_download('http://localhost:3000/api/dbdump', tmp)
+  docs <- mongolite::read_bson(tmp, verbose = FALSE, simplify = FALSE)
+  unlink(tmp)
+  dumppackages <- unique(vapply(docs, function(x) x$Package, character(1)))
+  expect_setequal(dumppackages, pkgs)
+
   # Sysdeps API
   apisysdeps <- jsonlite::fromJSON('http://localhost:3000/api/sysdeps')
   expect_in('curl', apisysdeps$library)
@@ -93,6 +101,8 @@ test_that("APIs works",{
   # Maintainers API
   maintainers <- jsonlite::fromJSON('http://localhost:3000/api/maintainers')
   expect_in(c("jeroen", "hadley"), maintainers$login)
+
+
 
 })
 
