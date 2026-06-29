@@ -12,7 +12,7 @@ mirror_universe <- function(from, to = 'localhost'){
 }
 
 #' @export
-mirror_package <- function(package, from = NULL, to = 'localhost'){
+mirror_package <- function(package, from = NULL, to = 'localhost', use_cdn = FALSE){
   endpoint <- if(length(from)){
     sprintf('https://%s.r-universe.dev/%s/files', from, package)
   } else {
@@ -21,20 +21,19 @@ mirror_package <- function(package, from = NULL, to = 'localhost'){
   files <- jsonlite::fromJSON(endpoint, simplifyVector = FALSE)
   files <- Filter(function(x){x[['_type']] != 'failure'}, files)
   for(info in files){
-    upload_package(info, to)
+    upload_package(info, to, use_cdn = use_cdn)
   }
   return(files)
 }
 
 #' @export
-upload_package <- function(info, universe){
+upload_package <- function(info, universe, use_cdn = FALSE){
   package <- info$Package
   version <- info$Version
   type <- info$`_type`
   sha <- info$`_fileid`
   path <- tempfile()
   on.exit(unlink(path))
-  curl::curl_download(paste0('https://cdn.r-universe.dev/', sha), path)
   url <- sprintf('http://%s.r-universe.dev/api/packages/%s/%s/%s/%s', universe, package, version, type, sha)
   headers <- c("Builder-Status: OK",
                     'Builder-Registered: true',
@@ -55,6 +54,16 @@ upload_package <- function(info, universe){
     "source"
   }
   message(sprintf('OK: %s %s (%s)', package, version, target))
+
+  # Exercise
+  if(use_cdn){
+    payload <- list(downloadurl = jsonlite::unbox(paste0('https://cdn.r-universe.dev/', info$`_sha256`)))
+    jsonlite::write_json(payload, path)
+    headers <- c(headers, 'Content-Type: application/json')
+  } else {
+    curl::curl_download(paste0('https://cdn.r-universe.dev/', sha), path)
+  }
+
   res <- curl::curl_upload(path, url, verbose = FALSE, httpheader = headers, connect_to="::localhost:3000")
   out <- parse_res(res)
   stopifnot(out$Package == package, out$Version == version)

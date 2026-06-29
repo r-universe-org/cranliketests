@@ -1,6 +1,6 @@
 # copy packages from r-universe because they contain metadata
-server <- processx::process$new(system.file("run-local.sh", package = 'cranliketests'))
-Sys.sleep(2)
+#server <- processx::process$new(system.file("run-local.sh", package = 'cranliketests'))
+#Sys.sleep(2)
 pkgs <- sort(c("dplyr", "curl", "ggplot2", "jsonlite"))
 packages <- db_packages()
 files <- db_files()
@@ -46,6 +46,21 @@ test_that("CRUD operations", {
   mirror_package('curl', to = 'localhost')
   expect_equal(packages$count(), total)
   expect_equal(nrow(files$find()), total)
+
+  # Replace with files from CDN
+  mirror_package('curl', to = 'localhost', use_cdn = TRUE)
+  expect_equal(packages$count(), total)
+  expect_equal(nrow(files$find()), total - nrow(out))
+
+  # Delete files (from CDN)
+  out <- delete_package('curl', user = 'localhost')
+  expect_equal(packages$count(), total - nrow(out))
+  expect_equal(nrow(files$find()), total - nrow(out))
+
+  # Restore files from CDN
+  mirror_package('curl', to = 'localhost', use_cdn = TRUE)
+  expect_equal(packages$count(), total)
+  expect_equal(nrow(files$find()), total - nrow(out))
 })
 
 test_that("Download entire repo", {
