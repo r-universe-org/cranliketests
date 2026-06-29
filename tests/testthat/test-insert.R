@@ -115,7 +115,8 @@ test_that("XML feeds", {
   # Sitemap
   sitemap <- xml2::read_xml('http://localhost:3000/sitemap.xml') |> xml2::xml_ns_strip()
   sitemap_urls <- xml2::xml_find_all(sitemap, '//sitemap/loc') |> xml2::xml_text()
-  expect_setequal(sprintf('https://localhost.r-universe.dev/%s/sitemap.xml', pkgs), sitemap_urls)
+  all_sitemaps <- c(paste0(pkgs, '/sitemap.xml'), 'sitemap_universe.xml')
+  expect_setequal(sprintf('https://localhost.r-universe.dev/%s', all_sitemaps), sitemap_urls)
 
 })
 
