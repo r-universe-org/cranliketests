@@ -57,8 +57,11 @@ upload_package <- function(info, universe, use_cdn = FALSE){
 
   # Exercise
   if(use_cdn){
-    payload <- list(downloadurl = jsonlite::unbox(paste0('https://cdn.r-universe.dev/', info$`_sha256`)))
-    jsonlite::write_json(payload, path)
+    payload <- list(
+      downloadurl = paste0('https://cdn.r-universe.dev/', info$`_sha256`),
+      expires = 'Tue, 01 Jan 2030 00:00:00 GMT'
+    )
+    jsonlite::write_json(payload, path, auto_unbox = TRUE)
     headers <- c(headers, 'Content-Type: application/json')
   } else {
     curl::curl_download(paste0('https://cdn.r-universe.dev/', sha), path)
