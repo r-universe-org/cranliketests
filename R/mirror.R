@@ -31,7 +31,10 @@ upload_package <- function(info, universe, use_cdn = FALSE){
   package <- info$Package
   version <- info$Version
   type <- info$`_type`
-  sha <- info$`_fileid`
+  sha <- info$`_sha256`
+  downloadurl <- info$`_fileid`
+  if(!grepl("https://", downloadurl))
+    downloadurl <- paste0('https://cdn.r-universe.dev/', downloadurl)
   path <- tempfile()
   on.exit(unlink(path))
   url <- sprintf('http://%s.r-universe.dev/api/packages/%s/%s/%s/%s', universe, package, version, type, sha)
@@ -58,13 +61,13 @@ upload_package <- function(info, universe, use_cdn = FALSE){
   # Exercise
   if(use_cdn){
     payload <- list(
-      downloadurl = paste0('https://cdn.r-universe.dev/', info$`_sha256`),
+      downloadurl = downloadurl,
       expires = 'Tue, 01 Jan 2030 00:00:00 GMT'
     )
     jsonlite::write_json(payload, path, auto_unbox = TRUE)
     headers <- c(headers, 'Content-Type: application/json')
   } else {
-    curl::curl_download(paste0('https://cdn.r-universe.dev/', sha), path)
+    curl::curl_download(downloadurl, path)
   }
 
   res <- curl::curl_upload(path, url, verbose = FALSE, httpheader = headers, connect_to="::localhost:3000")
