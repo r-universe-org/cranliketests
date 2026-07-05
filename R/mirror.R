@@ -33,8 +33,6 @@ upload_package <- function(info, universe, use_cdn = FALSE){
   type <- info$`_type`
   sha <- info$`_sha256`
   downloadurl <- info$`_fileid`
-  if(!grepl("https://", downloadurl))
-    downloadurl <- paste0('https://r2.ropensci.org/', downloadurl)
   path <- tempfile()
   on.exit(unlink(path))
   url <- sprintf('http://%s.r-universe.dev/api/packages/%s/%s/%s/%s', universe, package, version, type, sha)
