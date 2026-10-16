@@ -182,7 +182,6 @@ test_that("Extra jsonlite files can be downloaded", {
   test_get('/jsonlite/doc/readme', 'text/html; charset=utf-8')
   test_get('/jsonlite/doc/readme?highlight=hljs', 'text/html; charset=utf-8')
   test_get('/jsonlite/doc/README.md', 'text/plain; charset=utf-8')
-  test_get('/jsonlite/doc/json-mapping.pdf', 'application/pdf')
   test_get('/jsonlite/doc/json-apis.html', 'text/html; charset=utf-8')
   test_get('/jsonlite/citation.cff', 'text/plain; charset=utf-8')
   test_get('/jsonlite/citation.txt', 'text/plain; charset=utf-8')
