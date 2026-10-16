@@ -98,7 +98,7 @@ test_that("APIs works",{
   expect_equal(apipkgs, streampkgs)
   expect_setequal(pkgs, apipkgs$Package)
   lapply(apipkgs[['_assets']], function(assets){
-    expect_in(c("extra/citation.html", "extra/NEWS.html", "manual.pdf"), assets)
+    expect_in(c("extra/citation.html", "extra/NEWS.html", "extra/manual.pdf"), assets)
   })
 
   # DbDump API
